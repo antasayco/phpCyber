@@ -51,13 +51,19 @@ foreach($result as $fila) {
           "img" => $row["img"]
         );
       } else {
-        $splitFila[$row['cat']]['itemsDesktop'][$row['filadesktop']][] = $row;
+        // corregimos la agrupacion por #/-2
+        $filadesktop = explode ("-", $row['filadesktop']);
+        $splitFila[$row['cat']]['itemsDesktop'][$filadesktop[0]][] = $row;
         $splitFila[$row['cat']]['itemsMobile'][$row['filamobile']][] = $row;
       }
     }
   }
   $arrCard[] = $splitFila;
 }
+
+// var_dump("<pre>", $arrCard);
+// exit;
+
 ?>
 <!doctype html>
 <html>
@@ -74,21 +80,21 @@ $setHml = '';
  * Imprime el Menu
  * 
  */
-$setHml .= '<section class="CategoriesAnchor">';
-foreach ($arrCard as $section){
-  // Recorre la section
-  foreach($section as $key => $row){
-    if(isset($row['cat']) && $row['cat'] != ""){
-      $setHml .= '<div class="CategoriesAnchor__item">';
-        $setHml .= '<a href="#seccion-'. preg_replace('/[^a-z0-9]/i', '_', (strtolower($row['cat']))) .'">';
-          $setHml .= '<span class="pvaicon '. $row['img'] .'"></span>';
-          $setHml .= '<h6>'. $row['cat'] .'</h6>';
-        $setHml .= '</a>';
-      $setHml .= '</div>';
-    }
-  }
-}
-$setHml .= '</section>';
+// $setHml .= '<section class="CategoriesAnchor">';
+// foreach ($arrCard as $section){
+//   // Recorre la section
+//   foreach($section as $key => $row){
+//     if(isset($row['cat']) && $row['cat'] != ""){
+//       $setHml .= '<div class="CategoriesAnchor__item">';
+//         $setHml .= '<a href="#seccion-'. preg_replace('/[^a-z0-9]/i', '_', (strtolower($row['cat']))) .'">';
+//           $setHml .= '<span class="pvaicon '. $row['img'] .'"></span>';
+//           $setHml .= '<h6>'. $row['cat'] .'</h6>';
+//         $setHml .= '</a>';
+//       $setHml .= '</div>';
+//     }
+//   }
+// }
+// $setHml .= '</section>';
 
 /**
  * 
@@ -96,22 +102,22 @@ $setHml .= '</section>';
  * 
  */
 // Banner general	desktop
-$setHml .= '<section class="BannerCyberday"> 
-            <div class="Section">
-              <a href="'. $arrBanners['url'] .'"> 
-                <img src="https://plazavea.vteximg.com.br/arquivos/'. $arrBanners['img'] .'.jpg" title="'. $arrBanners['alt'] .'" style="width:100%" /> 
-              </a> 
-            </div> 
-          </section>';
+// $setHml .= '<section class="BannerCyberday"> 
+//             <div class="Section">
+//               <a href="'. $arrBanners['url'] .'"> 
+//                 <img src="https://plazavea.vteximg.com.br/arquivos/'. $arrBanners['img'] .'.jpg" title="'. $arrBanners['alt'] .'" style="width:100%" /> 
+//               </a> 
+//             </div> 
+//           </section>';
 
 // Banner general	mobile
-$setHml .= '<section class="BannerCyberday_mb">
-            <div class="Section">
-              <a href="'. $arrBanners['url'] .'">
-                <img src="https://plazavea.vteximg.com.br/arquivos/'. str_replace("-D-", "-M-", $arrBanners['img']) .'.jpg" title="'. $arrBanners['alt'] .'" style="width:100%" />
-              </a>
-            </div>
-          </section>';
+// $setHml .= '<section class="BannerCyberday_mb">
+//             <div class="Section">
+//               <a href="'. $arrBanners['url'] .'">
+//                 <img src="https://plazavea.vteximg.com.br/arquivos/'. str_replace("-D-", "-M-", $arrBanners['img']) .'.jpg" title="'. $arrBanners['alt'] .'" style="width:100%" />
+//               </a>
+//             </div>
+//           </section>';
 
 /**
  * 
@@ -138,9 +144,31 @@ foreach ($arrCard as $section){
         // <! --- ITEMS PC --->
         foreach($row['itemsDesktop'] as $keyFilaDesktop => $fila){
           // Pint items Card
-          $countSection = count($fila);
-          $setHml .= '<div class="Card'. $countSection .'">';
+          
+          // var_dump("<pre>", $fila);
+          // exit;
+
+          // Obtenemos la informacion por filas
+          //  -- Preguntamos si es tiene algun SPLIT  de #/-2
+          //  -- Si tenemos GUION medio entonces $trueDash == 1
+          $trueDash = 0;
           foreach($fila as $rowInfo){
+            if (strpos($rowInfo['filadesktop'], '-') !== false) {
+              $trueDash = 1;
+              break;
+            }
+          }
+
+          // Cart Conten
+          $countSection = $trueDash == 0 ? count($fila) : 2;
+          $setHml .= '<div class="Card'. $countSection .'">';
+          foreach($fila as $index => $rowInfo){
+            // Cart child
+            if($index == 0){
+              $countSection = $trueDash == 0 ? count($fila) : 2;
+            } else {
+              $countSection = $trueDash == 0 ? count($fila) : (count($fila) + 1);
+            }
             $setHml .= '
               <div class="Card'. $countSection .'__item">
                 <a href="'. $rowInfo['url'] .'">
@@ -148,6 +176,8 @@ foreach ($arrCard as $section){
                 </a>
               </div>';
           }
+          // 
+
           $setHml .= '</div>';
         }
         // <! --- ITEMS PC --->
